@@ -18,6 +18,12 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -416,6 +422,30 @@ public class Cadastrro extends JDialog {
 							st.setString(7, perfilE);
 							st.execute();
 
+							MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017");
+
+							MongoDatabase database = mongoClient.getDatabase("SistemaEleicao");
+
+							MongoCollection<Document> collection = database.getCollection("Pessoa");
+
+							Document documento = new Document();
+							documento.append("nome", getNome);
+							documento.append("cpf", getCpf);
+							documento.append("titulo", getTitulo);
+							documento.append("email", getEmail);
+							documento.append("senha", CSenha);
+							documento.append("perfil", perfilSelecionado);
+							documento.append("candidatoElietor", perfilE);
+
+							documento.append("endereco",
+									new Document().append("cidade", getCidade).append("cep", getCep)
+											.append("bairro", getBairro).append("numero", getNumero)
+											.append("logradouro", getLogradouro).append("estado", getEstado));
+
+							collection.insertOne(documento);
+
+							mongoClient.close();
+
 							rs = st.getGeneratedKeys();
 							int pessoaId = -1;
 							if (rs.next()) {
@@ -545,6 +575,38 @@ public class Cadastrro extends JDialog {
 							st.setInt(1, idEleicaoSelecionada);
 							st.setInt(2, candidatoId);
 							st.execute();
+
+							MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017");
+
+							MongoDatabase database = mongoClient.getDatabase("SistemaEleicao");
+
+							MongoCollection<Document> collection = database.getCollection("documentoCandidato");
+
+							Document documentoCandidato = new Document();
+							documentoCandidato.append("nome", getNome);
+							documentoCandidato.append("cpf", getCpf);
+							documentoCandidato.append("titulo", getTitulo);
+							documentoCandidato.append("email", getEmail);
+							documentoCandidato.append("senha", CSenha);
+							documentoCandidato.append("perfil", perfilSelecionado);
+							documentoCandidato.append("candidatoElietor", perfilC);
+
+							documentoCandidato.append("endereco",
+									new Document().append("cidade", getCidade).append("cep", getCep)
+											.append("bairro", getBairro).append("numero", getNumero)
+											.append("logradouro", getLogradouro).append("estado", getEstado));
+
+							documentoCandidato.append("eleicao",
+									new Document().append("nomeEleicao", nomeEleicaoSelecionada));
+
+							documentoCandidato.append("candidato",
+									new Document().append("partido", getPartido).append("numeroPartido", getNumPartido)
+											.append("numeroCandidato", getNumCandidato).append("foto", txtFotos)
+											.append("eleicao_id", idEleicaoSelecionada).append("pessoa_id", pessoaId));
+
+							collection.insertOne(documentoCandidato);
+
+							mongoClient.close();
 
 							txtNome.setText("");
 							txtdCpf.setText("");
